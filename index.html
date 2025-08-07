@@ -1,401 +1,277 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ежедневный отчет управляющего коворкингом</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ежедневный отчёт коворкинга</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+    h1, h2, h3 { color: #333; }
+    form { background: #fff; padding: 20px; border-radius: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.1); max-width: 900px; }
+    .metric-row { display: flex; margin-bottom: 10px; align-items: center; }
+    .metric-row label { width: 280px; font-weight: bold; }
+    .metric-row input[type="number"],
+    .metric-row input[type="text"],
+    .metric-row input[type="date"],
+    .metric-row textarea,
+    .metric-row select {
+      width: 180px;
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .metric-row textarea { width: 400px; resize: vertical; }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      margin-right: 10px;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #45a049; }
+    #report-output { white-space: pre-wrap; background: #fff; padding: 20px; border-radius: 6px; margin-top: 20px; max-width: 900px; }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header class="report-header">
-            <h1>Ежедневный отчет управляющего коворкингом</h1>
-            <div class="basic-info">
-                <div class="form-group">
-                    <label class="form-label" for="report-date">Дата</label>
-                    <input type="date" id="report-date" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="manager-name">Имя управляющего</label>
-                    <input type="text" id="manager-name" class="form-control" placeholder="Иванова Анна Сергеевна" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="coworking-name">Название коворкинга</label>
-                    <input type="text" id="coworking-name" class="form-control" placeholder="WorkSpace Plus" required>
-                </div>
-            </div>
-        </header>
 
-        <form id="daily-report-form" class="report-form">
-            <!-- Раздел 1: Основные показатели дня -->
-            <section class="report-section card">
-                <div class="card__body">
-                    <h2>1. Основные показатели дня</h2>
-                    <div class="subsection">
-                        <h3>Посещаемость</h3>
-                        <div class="field-grid">
-                            <div class="form-group">
-                                <label class="form-label" for="visitors">Общее количество посетителей</label>
-                                <input type="number" id="visitors" class="form-control metric-input" min="0" data-target="50">
-                                <small class="field-hint">Цель: >50 чел.</small>
-                                <div class="status-indicator" id="visitors-status"></div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="new-clients">Новые клиенты</label>
-                                <input type="number" id="new-clients" class="form-control" min="0">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="returning-clients">Возвращающиеся клиенты</label>
-                                <input type="number" id="returning-clients" class="form-control" min="0">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="fixed-spaces">Загрузка фиксированных мест (%)</label>
-                                <label for="fixed-spaces-occupied">Занято фиксированных мест (из 15):</label>
-<input type="number" id="fixed-spaces-occupied" min="0" max="15" step="1" />
-                                <input type="number" id="fixed-spaces" class="form-control metric-input" min="0" max="100" data-target="80">
-                                <small class="field-hint">Цель: >80%</small>
-                                <div class="status-indicator" id="fixed-spaces-status"></div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="flexible-spaces">Загрузка гибких мест (%)</label>
-                                <input type="number" id="flexible-spaces" class="form-control metric-input" min="0" max="100" data-target="75">
-                                <small class="field-hint">Цель: >75%</small>
-                                <div class="status-indicator" id="flexible-spaces-status"></div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="meeting-rooms">Загрузка переговорных (%)</label>
-                                <label for="flexible-spaces-occupied">Занято гибких мест (из 74):</label>
-<input type="number" id="flexible-spaces-occupied" min="0" max="74" step="1" />
-                                <input type="number" id="meeting-rooms" class="form-control metric-input" min="0" max="100" data-target="60">
-                                <small class="field-hint">Цель: >60%</small>
-                                <div class="status-indicator" id="meeting-rooms-status"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+  <h1>Ежедневный отчёт управляющего коворкинга</h1>
 
-            <!-- Раздел 2: Финансовые показатели -->
-            <section class="report-section card">
-                <div class="card__body">
-                    <h2>2. Финансовые показатели</h2>
-                    <div class="field-grid">
-                        <div class="form-group">
-                            <label class="form-label" for="daily-revenue">Общая выручка за день (руб.)</label>
-                            <input type="number" id="daily-revenue" class="form-control" min="0" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="average-check">Средний чек (руб.)</label>
-                            <input type="number" id="average-check" class="form-control" min="0" step="0.01" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="transactions">Количество транзакций</label>
-                            <input type="number" id="transactions" class="form-control" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="meeting-revenue">Доход от переговорных (руб.)</label>
-                            <input type="number" id="meeting-revenue" class="form-control" min="0" step="0.01">
-                        </div>
-                    </div>
-                </div>
-            </section>
+  <form id="daily-report-form">
 
-            <!-- Раздел 3: Использование пространства -->
-            <section class="report-section card">
-                <div class="card__body">
-                    <h2>3. Использование пространства</h2>
-                    <div class="subsection">
-                        <h3>Общественные зоны</h3>
-                        <div class="checkbox-grid">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="kitchen-area">
-                                <span>Кухонная зона - чистота и порядок</span>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="lounge-area">
-                                <span>Лаунж-зона - состояние мебели и комфорт</span>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="rest-area">
-                                <span>Зона отдыха - функциональность оборудования</span>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="phone-booths">
-                                <span>Телефонные будки - техническое состояние</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="space-comments">Комментарии к использованию пространства</label>
-                        <textarea id="space-comments" class="form-control" rows="3" placeholder="Дополнительные замечания..."></textarea>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Раздел 4: Продажи и клиенты -->
-            <section class="report-section card">
-                <div class="card__body">
-                    <h2>4. Продажи и клиенты</h2>
-                    <div class="field-grid">
-                        <div class="form-group">
-                            <label class="form-label" for="tours-conducted">Количество экскурсий проведено</label>
-                            <input type="number" id="tours-conducted" class="form-control" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="new-registrations">Количество новых регистраций</label>
-                            <input type="number" id="new-registrations" class="form-control" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="conversion-rate">Конверсия экскурсий в продажи (%)</label>
-                            <input type="number" id="conversion-rate" class="form-control metric-input" min="0" max="100" data-target="30" readonly>
-                            <small class="field-hint">Цель: >30%</small>
-                            <div class="status-indicator" id="conversion-rate-status"></div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="subscription-renewals">Продлили подписку</label>
-                            <input type="number" id="subscription-renewals" class="form-control" min="0">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Раздел 5: Операционная деятельность -->
-            <section class="report-section card">
-                <div class="card__body">
-                    <h2>5. Операционная деятельность</h2>
-                    <div class="subsection">
-                        <h3>Техническое состояние</h3>
-                        <div class="checkbox-grid">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="internet-stable">
-                                <span>Интернет работает стабильно (скорость >50 Мбит/с)</span>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="printers-working">
-                                <span>Принтеры и сканеры исправны</span>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="coffee-machines">
-                                <span>Кофемашины работают исправно</span>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="air-conditioning">
-                                <span>Система кондиционирования функционирует</span>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="lighting-ok">
-                                <span>Освещение в норме во всех зонах</span>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="security-active">
-                                <span>Система безопасности активна</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="subsection">
-                        <h3>Чистота и порядок</h3>
-                        <div class="checkbox-grid">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="morning-cleaning">
-                                <span>Утренняя уборка выполнена</span>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="evening-cleaning">
-                                <span>Вечерняя уборка запланирована</span>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="supplies-refilled">
-                                <span>Расходные материалы пополнены</span>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="trash-removed">
-                                <span>Мусор вынесен</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Раздел 6: Обслуживание клиентов -->
-            <section class="report-section card">
-                <div class="card__body">
-                    <h2>6. Обслуживание клиентов</h2>
-                    <div class="field-grid">
-                        <div class="form-group">
-                            <label class="form-label" for="support-requests">Количество обращений в поддержку</label>
-                            <input type="number" id="support-requests" class="form-control" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="response-time">Среднее время отклика (мин.)</label>
-                            <input type="number" id="response-time" class="form-control metric-input" min="0" data-target="15">
-                            <small class="field-hint">Цель: <15 мин.</small>
-                            <div class="status-indicator" id="response-time-status"></div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="complaints">Количество жалоб</label>
-                            <input type="number" id="complaints" class="form-control metric-input" min="0" data-target="3">
-                            <small class="field-hint">Цель: <3 в день</small>
-                            <div class="status-indicator" id="complaints-status"></div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="service-rating">Оценка качества обслуживания (1-5)</label>
-                            <input type="number" id="service-rating" class="form-control" min="1" max="5" step="0.1">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="client-feedback">Замечания от клиентов</label>
-                        <textarea id="client-feedback" class="form-control" rows="3" placeholder="Отзывы и пожелания клиентов..."></textarea>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Раздел 7: События и активности -->
-            <section class="report-section card">
-                <div class="card__body">
-                    <h2>7. События и активности</h2>
-                    <div class="field-grid">
-                        <div class="form-group">
-                            <label class="form-label" for="events-conducted">Проведенные мероприятия</label>
-                            <textarea id="events-conducted" class="form-control" rows="2" placeholder="Описание проведенных мероприятий..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="event-participants">Количество участников</label>
-                            <input type="number" id="event-participants" class="form-control" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="event-revenue">Доходы от мероприятий (руб.)</label>
-                            <input type="number" id="event-revenue" class="form-control" min="0" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="tomorrow-events">События на завтра</label>
-                            <textarea id="tomorrow-events" class="form-control" rows="2" placeholder="Планируемые мероприятия..."></textarea>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Раздел 8: Проблемы и инциденты -->
-            <section class="report-section card">
-                <div class="card__body">
-                    <h2>8. Проблемы и инциденты</h2>
-                    <div class="subsection">
-                        <h3>Технические проблемы</h3>
-                        <div class="checkbox-grid">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="no-problems">
-                                <span>Проблем не было</span>
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="technical-issues">Описание технических проблем</label>
-                            <textarea id="technical-issues" class="form-control" rows="3" placeholder="Проблемы с интернетом, оборудованием, коммуникациями..."></textarea>
-                        </div>
-                    </div>
-                    <div class="subsection">
-                        <h3>Конфликтные ситуации</h3>
-                        <div class="checkbox-grid">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="no-conflicts">
-                                <span>Конфликтов не было</span>
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="incident-description">Описание инцидента</label>
-                            <textarea id="incident-description" class="form-control" rows="2" placeholder="Описание конфликтной ситуации..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="measures-taken">Принятые меры</label>
-                            <textarea id="measures-taken" class="form-control" rows="2" placeholder="Действия по разрешению ситуации..."></textarea>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Раздел 9: Планы на завтра -->
-            <section class="report-section card">
-                <div class="card__body">
-                    <h2>9. Планы на завтра</h2>
-                    <div class="form-group">
-                        <label class="form-label" for="priority-tasks">Приоритетные задачи</label>
-                        <textarea id="priority-tasks" class="form-control" rows="4" placeholder="1. Первая задача&#10;2. Вторая задача&#10;3. Третья задача"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="scheduled-meetings">Запланированные встречи</label>
-                        <textarea id="scheduled-meetings" class="form-control" rows="3" placeholder="Время - Описание встречи"></textarea>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Раздел 10: Предложения по улучшению -->
-            <section class="report-section card">
-                <div class="card__body">
-                    <h2>10. Предложения по улучшению</h2>
-                    <div class="form-group">
-                        <label class="form-label" for="short-term-improvements">Краткосрочные улучшения (1-7 дней)</label>
-                        <textarea id="short-term-improvements" class="form-control" rows="3" placeholder="Предложения по быстрым улучшениям..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="long-term-initiatives">Долгосрочные инициативы (1-3 месяца)</label>
-                        <textarea id="long-term-initiatives" class="form-control" rows="3" placeholder="Стратегические предложения..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="additional-comments">Дополнительные комментарии</label>
-                        <textarea id="additional-comments" class="form-control" rows="4" placeholder="Общие комментарии о работе дня..."></textarea>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Сводка основных показателей -->
-            <section class="summary-section card">
-                <div class="card__body">
-                    <h2>Сводка основных показателей</h2>
-                    <div id="summary-grid" class="summary-grid">
-                        <!-- Автоматически заполняется JS -->
-                    </div>
-                    <div class="overall-status">
-                        <div id="overall-assessment" class="overall-assessment">
-                            <strong>Общая оценка дня:</strong> <span id="day-rating">Заполните показатели</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Кнопки управления -->
-            <div class="form-actions">
-                <button type="button" id="clear-form" class="btn btn--outline">
-                    Очистить форму
-                </button>
-                <button type="button" id="save-draft" class="btn btn--secondary">
-                    Сохранить черновик
-                </button>
-                <button type="button" id="generate-report" class="btn btn--primary">
-                    Сформировать отчет
-                </button>
-            </div>
-        </form>
-
-        <!-- Результат отчета -->
-        <div id="report-output" class="report-output hidden">
-            <div class="card">
-                <div class="card__body">
-                    <h2>Готовый отчет</h2>
-                    <div class="report-actions">
-                        <button type="button" id="copy-report" class="btn btn--secondary">
-                            Скопировать в буфер
-                        </button>
-                        <button type="button" id="download-report" class="btn btn--primary">
-                            Скачать отчет
-                        </button>
-                        <button type="button" id="edit-report" class="btn btn--outline">
-                            Вернуться к редактированию
-                        </button>
-                    </div>
-                    <div id="formatted-report" class="formatted-report"></div>
-                </div>
-            </div>
-        </div>
+    <!-- Основные поля -->
+    <div class="metric-row">
+      <label for="report-date">Дата отчёта:</label>
+      <input type="date" id="report-date" required />
     </div>
 
-    <script src="app.js"></script>
-    </body>
+    <div class="metric-row">
+      <label for="manager-name">Управляющий:</label>
+      <input type="text" id="manager-name" required />
+    </div>
+
+    <div class="metric-row">
+      <label for="coworking-name">Название коворкинга:</label>
+      <input type="text" id="coworking-name" required />
+    </div>
+
+    <h2>1. Основные показатели дня</h2>
+
+    <div class="metric-row">
+      <label for="visitors">Посещаемость (чел.):</label>
+      <input type="number" id="visitors" min="0" class="metric-input" data-target="50" />
+    </div>
+
+    <div class="metric-row">
+      <label for="new-clients">Новые клиенты (чел.):</label>
+      <input type="number" id="new-clients" min="0" />
+    </div>
+
+    <div class="metric-row">
+      <label for="returning-clients">Возвращающиеся клиенты (чел.):</label>
+      <input type="number" id="returning-clients" min="0" />
+    </div>
+
+    <!-- Загрузка фиксированных мест -->
+    <div class="metric-row">
+      <label for="fixed-spaces">Загрузка фиксированных мест (%):</label>
+      <input type="number" id="fixed-spaces" min="0" max="100" step="0.1" class="metric-input" data-target="80" readonly />
+    </div>
+    <div class="metric-row">
+      <label for="fixed-spaces-occupied">Занято фиксированных мест (из 15):</label>
+      <input type="number" id="fixed-spaces-occupied" min="0" max="15" step="1" />
+    </div>
+
+    <!-- Загрузка гибких мест -->
+    <div class="metric-row">
+      <label for="flexible-spaces">Загрузка гибких мест (%):</label>
+      <input type="number" id="flexible-spaces" min="0" max="100" step="0.1" class="metric-input" data-target="75" readonly />
+    </div>
+    <div class="metric-row">
+      <label for="flexible-spaces-occupied">Занято гибких мест (из 74):</label>
+      <input type="number" id="flexible-spaces-occupied" min="0" max="74" step="1" />
+    </div>
+
+    <div class="metric-row">
+      <label for="meeting-rooms">Загрузка переговорных (%):</label>
+      <input type="number" id="meeting-rooms" min="0" max="100" step="0.1" class="metric-input" data-target="60" />
+    </div>
+
+    <h2>2. Финансовые показатели</h2>
+    <div class="metric-row">
+      <label for="daily-revenue">Выручка за день (руб.):</label>
+      <input type="number" id="daily-revenue" min="0" step="0.01" />
+    </div>
+    <div class="metric-row">
+      <label for="transactions">Количество транзакций:</label>
+      <input type="number" id="transactions" min="0" />
+    </div>
+    <div class="metric-row">
+      <label for="average-check">Средний чек (руб.):</label>
+      <input type="number" id="average-check" readonly />
+    </div>
+    <div class="metric-row">
+      <label for="meeting-revenue">Доход от переговорных (руб.):</label>
+      <input type="number" id="meeting-revenue" min="0" step="0.01" />
+    </div>
+
+    <h2>3. Продажи и клиенты</h2>
+    <div class="metric-row">
+      <label for="tours-conducted">Количество экскурсий проведено:</label>
+      <input type="number" id="tours-conducted" min="0" />
+    </div>
+    <div class="metric-row">
+      <label for="new-registrations">Количество новых регистраций:</label>
+      <input type="number" id="new-registrations" min="0" />
+    </div>
+    <div class="metric-row">
+      <label for="conversion-rate">Конверсия экскурсий в покупки (%):</label>
+      <input type="number" id="conversion-rate" readonly />
+    </div>
+    <div class="metric-row">
+      <label for="subscription-renewals">Продлили подписку (чел.):</label>
+      <input type="number" id="subscription-renewals" min="0" />
+    </div>
+
+    <h2>4. Техническое состояние и операции</h2>
+    <div class="metric-row">
+      <label><input type="checkbox" id="internet-stable" /> Интернет стабилен (скорость >50 Мбит/с)</label>
+    </div>
+    <div class="metric-row">
+      <label><input type="checkbox" id="printers-working" /> Принтеры и сканеры исправны</label>
+    </div>
+    <div class="metric-row">
+      <label><input type="checkbox" id="coffee-machines" /> Кофемашины работают</label>
+    </div>
+    <div class="metric-row">
+      <label><input type="checkbox" id="air-conditioning" /> Кондиционирование работает</label>
+    </div>
+    <div class="metric-row">
+      <label><input type="checkbox" id="lighting-ok" /> Освещение в норме</label>
+    </div>
+    <div class="metric-row">
+      <label><input type="checkbox" id="security-active" /> Система безопасности активна</label>
+    </div>
+
+    <h2>5. Чистота и порядок</h2>
+    <div class="metric-row">
+      <label><input type="checkbox" id="morning-cleaning" /> Утренняя уборка выполнена</label>
+    </div>
+    <div class="metric-row">
+      <label><input type="checkbox" id="evening-cleaning" /> Вечерняя уборка запланирована</label>
+    </div>
+    <div class="metric-row">
+      <label><input type="checkbox" id="supplies-refilled" /> Расходные материалы пополнены</label>
+    </div>
+    <div class="metric-row">
+      <label><input type="checkbox" id="trash-removed" /> Мусор вынесен</label>
+    </div>
+
+    <h2>6. Обслуживание клиентов</h2>
+    <div class="metric-row">
+      <label for="support-requests">Обращения в поддержку:</label>
+      <input type="number" id="support-requests" min="0" />
+    </div>
+    <div class="metric-row">
+      <label for="response-time">Среднее время отклика (мин.):</label>
+      <input type="number" id="response-time" min="0" step="0.1" data-target="15" />
+    </div>
+    <div class="metric-row">
+      <label for="complaints">Количество жалоб:</label>
+      <input type="number" id="complaints" min="0" data-target="3" />
+    </div>
+    <div class="metric-row">
+      <label for="service-rating">Оценка качества (1-5):</label>
+      <input type="number" id="service-rating" min="1" max="5" step="1" />
+    </div>
+    <div class="metric-row">
+      <label for="client-feedback">Замечания от клиентов:</label>
+      <textarea id="client-feedback" rows="3"></textarea>
+    </div>
+
+    <h2>7. События и активности</h2>
+    <div class="metric-row">
+      <label for="events-conducted">Проведённые мероприятия:</label>
+      <textarea id="events-conducted" rows="3"></textarea>
+    </div>
+    <div class="metric-row">
+      <label for="event-participants">Количество участников:</label>
+      <input type="number" id="event-participants" min="0" />
+    </div>
+    <div class="metric-row">
+      <label for="event-revenue">Доход от мероприятий (руб.):</label>
+      <input type="number" id="event-revenue" min="0" step="0.01" />
+    </div>
+    <div class="metric-row">
+      <label for="tomorrow-events">События на завтра:</label>
+      <textarea id="tomorrow-events" rows="3"></textarea>
+    </div>
+
+    <h2>8. Проблемы и инциденты</h2>
+    <div class="metric-row">
+      <label><input type="checkbox" id="no-problems" /> Проблем не было</label>
+    </div>
+    <div class="metric-row">
+      <label for="technical-issues">Технические проблемы:</label>
+      <textarea id="technical-issues" rows="2"></textarea>
+    </div>
+
+    <div class="metric-row">
+      <label><input type="checkbox" id="no-conflicts" /> Конфликтов не было</label>
+    </div>
+    <div class="metric-row">
+      <label for="incident-description">Описание инцидентов:</label>
+      <textarea id="incident-description" rows="2"></textarea>
+    </div>
+    <div class="metric-row">
+      <label for="measures-taken">Принятые меры:</label>
+      <textarea id="measures-taken" rows="2"></textarea>
+    </div>
+
+    <h2>9. Планы на завтра</h2>
+    <div class="metric-row">
+      <label for="priority-tasks">Приоритетные задачи:</label>
+      <textarea id="priority-tasks" rows="3"></textarea>
+    </div>
+    <div class="metric-row">
+      <label for="scheduled-meetings">Запланированные встречи:</label>
+      <textarea id="scheduled-meetings" rows="3"></textarea>
+    </div>
+
+    <h2>10. Предложения по улучшению</h2>
+    <div class="metric-row">
+      <label for="short-term-improvements">Краткосрочные улучшения (1-7 дней):</label>
+      <textarea id="short-term-improvements" rows="3"></textarea>
+    </div>
+    <div class="metric-row">
+      <label for="long-term-initiatives">Долгосрочные инициативы (1-3 месяца):</label>
+      <textarea id="long-term-initiatives" rows="3"></textarea>
+    </div>
+    <div class="metric-row">
+      <label for="additional-comments">Дополнительные комментарии:</label>
+      <textarea id="additional-comments" rows="3"></textarea>
+    </div>
+
+    <div style="margin-top: 20px;">
+      <button type="button" id="generate-report">Сформировать отчёт</button>
+      <button type="button" id="clear-form">Очистить форму</button>
+      <button type="button" id="save-draft">Сохранить черновик</button>
+    </div>
+  </form>
+
+  <section id="report-output" class="hidden" style="max-width:900px; background:#fff; padding:15px; margin-top:20px; border-radius:6px; box-shadow:0 0 6px rgba(0,0,0,0.1);">
+    <h2>Сформированный отчёт</h2>
+    <pre id="formatted-report" style="white-space: pre-wrap;"></pre>
+    <button type="button" id="edit-report">Редактировать</button>
+    <button type="button" id="copy-report">Скопировать в буфер обмена</button>
+    <button type="button" id="download-report">Скачать отчёт</button>
+  </section>
+
+  <script src="app.js"></script>
+
+</body>
 </html>
