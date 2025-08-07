@@ -1,7 +1,6 @@
 const LAST_REPORT_DATE_KEY = 'last_report_date';
 const REPORTS_BY_DATE_KEY = 'daily_reports_by_date';
 
-// === КОНСТАНТЫ ЗАНЯТОСТИ МЕСТ ===
 const TOTAL_SPACES = 89;
 const FIXED_SPACES_TOTAL = 15;
 const FLEXIBLE_SPACES_TOTAL = TOTAL_SPACES - FIXED_SPACES_TOTAL; // 74
