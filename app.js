@@ -1,10 +1,10 @@
+const LAST_REPORT_DATE_KEY = 'last_report_date';
+const REPORTS_BY_DATE_KEY = 'daily_reports_by_date';
 // Daily Coworking Report Application
-
 // Global variables
 let formData = {};
 let autosaveTimeout = null;
 const AUTOSAVE_DELAY = 2000; // 2 seconds
-
 // Target values from JSON
 const TARGET_VALUES = {
     visitors: 50,
@@ -21,19 +21,21 @@ const TARGET_VALUES = {
 
 // Initialize application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Set today's date as default
+    const todayStr = getTodayString();
+    const lastDate = localStorage.getItem(LAST_REPORT_DATE_KEY);
+
+    if (lastDate && lastDate !== todayStr) {
+        saveReportAsFinal(lastDate);
+        sendReportToMail(lastDate);
+        clearForm(true); // очистка без подтверждения
+    }
+
+    localStorage.setItem(LAST_REPORT_DATE_KEY, todayStr);
+
     initializeDate();
-    
-    // Attach event listeners
     attachEventListeners();
-    
-    // Try to load saved form data
-    loadFormData();
-    
-    // Initialize calculation dependencies
+    loadOrResetFormByDate(todayStr);
     updateCalculatedFields();
-    
-    // Show toast message for initial guidance
     showToast('Заполните данные отчета и нажмите "Сформировать отчет"', 'success');
 });
 
@@ -927,4 +929,104 @@ function showToast(message, type = 'success') {
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
+}
+function getTodayString() {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+}
+
+// Сохраняет текущий черновик как финальный отчёт за указанную дату
+function saveReportAsFinal(dateStr) {
+    const draft = localStorage.getItem('daily_report_form_data');
+    if (!draft) return;
+    let allReports = {};
+    try {
+        allReports = JSON.parse(localStorage.getItem(REPORTS_BY_DATE_KEY) || '{}');
+    } catch {
+        allReports = {};
+    }
+    allReports[dateStr] = JSON.parse(draft);
+    localStorage.setItem(REPORTS_BY_DATE_KEY, JSON.stringify(allReports));
+}
+
+// Загрузка черновика или финального отчета по дате, иначе очистка формы
+function loadOrResetFormByDate(dateStr) {
+    let allReports = {};
+    try {
+        allReports = JSON.parse(localStorage.getItem(REPORTS_BY_DATE_KEY) || '{}');
+    } catch {
+        allReports = {};
+    }
+    if (localStorage.getItem('daily_report_form_data')) {
+        loadFormData();
+    } else if (allReports[dateStr]) {
+        populateForm(allReports[dateStr]);
+    } else {
+        clearForm(true);
+    }
+}
+
+// Отправка отчёта на серверный API для отправки по email
+function sendReportToMail(dateStr) {
+    let allReports = {};
+    try {
+        allReports = JSON.parse(localStorage.getItem(REPORTS_BY_DATE_KEY) || '{}');
+    } catch {
+        allReports = {};
+    }
+    if (!allReports[dateStr]) return;
+
+    const formData = allReports[dateStr];
+    const report = formatReportFromData(formData);
+
+    fetch('/api/send-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            to: 'ssd-samoilova@mail.ru',
+            subject: `Отчет коворкинга за ${formatRuDate(dateStr)}`,
+            body: report,
+        }),
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('Отчет отправлен:', data.status);
+        showToast('Вчерашний отчет отправлен на почту', 'success');
+    })
+    .catch(err => {
+        console.error('Ошибка отправки:', err);
+        showToast('Ошибка отправки отчета на почту', 'error');
+    });
+}
+
+// Форматирует данные отчёта для отправки в текстовом виде (заполните по вашей структуре)
+function formatReportFromData(data) {
+    const displayDate = data.date
+        ? new Date(data.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        : '';
+
+    // Пример формирования: подстройте под ваши реальные поля и формат вывода
+    return `Ежедневный отчет
+Дата: ${displayDate}
+Управляющий: ${data.manager || ''}
+Количество посетителей: ${data.metrics?.visitors || ''}
+Выручка за день: ${data.financial?.dailyRevenue || ''}
+... (Добавьте остальные поля отчёта по необходимости)
+`;
+}
+
+function formatRuDate(dateStr) {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+// Обновленная очистка формы, принимает параметр silent - тихий режим без подтверждения
+function clearForm(silent = false) {
+    if (!silent && !confirm('Вы уверены, что хотите очистить форму? Все введенные данные будут удалены.')) {
+        return;
+    }
+    const form = document.querySelector('form');
+    if (form) form.reset();
+    localStorage.removeItem('daily_report_form_data');
+    // обновите прочие элементы интерфейса при необходимости
 }
