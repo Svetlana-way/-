@@ -1,5 +1,11 @@
 const LAST_REPORT_DATE_KEY = 'last_report_date';
 const REPORTS_BY_DATE_KEY = 'daily_reports_by_date';
+
+// === КОНСТАНТЫ ЗАНЯТОСТИ МЕСТ ===
+const TOTAL_SPACES = 89;
+const FIXED_SPACES_TOTAL = 15;
+const FLEXIBLE_SPACES_TOTAL = TOTAL_SPACES - FIXED_SPACES_TOTAL; // 74
+
 // Daily Coworking Report Application
 // Global variables
 let formData = {};
@@ -51,6 +57,17 @@ function initializeDate() {
 // Attach event listeners to form elements
 function attachEventListeners() {
     // Metric inputs for status indicators
+    // Добавьте в тело attachEventListeners после существующих слушателей:
+
+const fixedOccupiedInput = document.getElementById('fixed-spaces-occupied');
+const flexibleOccupiedInput = document.getElementById('flexible-spaces-occupied');
+
+if (fixedOccupiedInput) {
+  fixedOccupiedInput.addEventListener('input', updateSpaceOccupancyPercentages);
+}
+if (flexibleOccupiedInput) {
+  flexibleOccupiedInput.addEventListener('input', updateSpaceOccupancyPercentages);
+}
     document.querySelectorAll('.metric-input').forEach(input => {
         input.addEventListener('input', function() {
             updateMetricStatus(this);
@@ -447,6 +464,40 @@ function collectFormData() {
             additionalComments: document.getElementById('additional-comments').value,
         },
     };
+function updateSpaceOccupancyPercentages() {
+  const fixedOccupiedInput = document.getElementById('fixed-spaces-occupied');
+  const flexibleOccupiedInput = document.getElementById('flexible-spaces-occupied');
+  const fixedPercentInput = document.getElementById('fixed-spaces');
+  const flexiblePercentInput = document.getElementById('flexible-spaces');
+
+  const fixedOccupied = fixedOccupiedInput ? parseInt(fixedOccupiedInput.value) || 0 : 0;
+  const flexibleOccupied = flexibleOccupiedInput ? parseInt(flexibleOccupiedInput.value) || 0 : 0;
+
+  let fixedPercent = FIXED_SPACES_TOTAL ? (fixedOccupied / FIXED_SPACES_TOTAL) * 100 : 0;
+  let flexiblePercent = FLEXIBLE_SPACES_TOTAL ? (flexibleOccupied / FLEXIBLE_SPACES_TOTAL) * 100 : 0;
+
+  fixedPercent = Math.min(fixedPercent, 100);
+  flexiblePercent = Math.min(flexiblePercent, 100);
+
+  if (fixedPercentInput) {
+    fixedPercentInput.value = fixedPercent.toFixed(1);
+    updateMetricStatus(fixedPercentInput);
+  }
+  if (flexiblePercentInput) {
+    flexiblePercentInput.value = flexiblePercent.toFixed(1);
+    updateMetricStatus(flexiblePercentInput);
+  }
+
+  updateSummary();
+  updateOverallRating();
+  triggerAutosave();
+}
+    function updateCalculatedFields() {
+    updateAverageCheck();
+    updateSummary();
+    updateOverallRating();
+    updateSpaceOccupancyPercentages();  
+}
     
     return formData;
 }
@@ -799,15 +850,18 @@ function populateForm(data) {
     if (data.manager) document.getElementById('manager-name').value = data.manager;
     if (data.coworkingName) document.getElementById('coworking-name').value = data.coworkingName;
     
-    // Metrics
-    if (data.metrics) {
-        if (data.metrics.visitors) document.getElementById('visitors').value = data.metrics.visitors;
-        if (data.metrics.newClients) document.getElementById('new-clients').value = data.metrics.newClients;
-        if (data.metrics.returningClients) document.getElementById('returning-clients').value = data.metrics.returningClients;
-        if (data.metrics.fixedSpaces) document.getElementById('fixed-spaces').value = data.metrics.fixedSpaces;
-        if (data.metrics.flexibleSpaces) document.getElementById('flexible-spaces').value = data.metrics.flexibleSpaces;
-        if (data.metrics.meetingRooms) document.getElementById('meeting-rooms').value = data.metrics.meetingRooms;
-    }
+    // metrics: {
+    visitors: document.getElementById('visitors').value,
+    newClients: document.getElementById('new-clients').value,
+    returningClients: document.getElementById('returning-clients').value,
+
+    fixedSpacesOccupied: document.getElementById('fixed-spaces-occupied') ? document.getElementById('fixed-spaces-occupied').value : '',
+    flexibleSpacesOccupied: document.getElementById('flexible-spaces-occupied') ? document.getElementById('flexible-spaces-occupied').value : '',
+
+    fixedSpaces: document.getElementById('fixed-spaces').value,
+    flexibleSpaces: document.getElementById('flexible-spaces').value,
+    meetingRooms: document.getElementById('meeting-rooms').value,
+},
     
     // Financial
     if (data.financial) {
