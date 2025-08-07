@@ -30,9 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastDate = localStorage.getItem(LAST_REPORT_DATE_KEY);
 
     if (lastDate && lastDate !== todayStr) {
-        saveReportAsFinal(lastDate);
-        sendReportToMail(lastDate);
-        clearForm(true); // очистка без подтверждения
+        saveReportAsFinal(lastDate);  // сохранение вчерашнего отчета
+        sendReportToMail(lastDate);   // отправка вчерашнего отчета по email
+        clearForm(true);              // тихая очистка формы для нового дня
     }
 
     localStorage.setItem(LAST_REPORT_DATE_KEY, todayStr);
@@ -67,11 +67,18 @@ if (fixedOccupiedInput) {
 if (flexibleOccupiedInput) {
   flexibleOccupiedInput.addEventListener('input', updateSpaceOccupancyPercentages);
 }
+    const fixedOccupiedInput = document.getElementById('fixed-spaces-occupied');
+    const flexibleOccupiedInput = document.getElementById('flexible-spaces-occupied');
+    if (fixedOccupiedInput) {
+        fixedOccupiedInput.addEventListener('input', updateSpaceOccupancyPercentages);
+    }
+    if (flexibleOccupiedInput) {
+        flexibleOccupiedInput.addEventListener('input', updateSpaceOccupancyPercentages);
+    }
     document.querySelectorAll('.metric-input').forEach(input => {
         input.addEventListener('input', function() {
             updateMetricStatus(this);
             triggerAutosave();
-        });
     });
     
     // Inputs that trigger calculation updates
@@ -269,6 +276,42 @@ function updateSummary() {
             actual: parseFloat(document.getElementById('conversion-rate').value) || 0,
             id: 'conversion-rate'
         }
+        function updateSpaceOccupancyPercentages() {
+    const fixedOccupiedInput = document.getElementById('fixed-spaces-occupied');
+    const flexibleOccupiedInput = document.getElementById('flexible-spaces-occupied');
+    const fixedPercentInput = document.getElementById('fixed-spaces');
+    const flexiblePercentInput = document.getElementById('flexible-spaces');
+
+    const fixedOccupied = fixedOccupiedInput ? parseInt(fixedOccupiedInput.value) || 0 : 0;
+    const flexibleOccupied = flexibleOccupiedInput ? parseInt(flexibleOccupiedInput.value) || 0 : 0;
+
+    let fixedPercent = FIXED_SPACES_TOTAL ? (fixedOccupied / FIXED_SPACES_TOTAL) * 100 : 0;
+    let flexiblePercent = FLEXIBLE_SPACES_TOTAL ? (flexibleOccupied / FLEXIBLE_SPACES_TOTAL) * 100 : 0;
+
+    fixedPercent = Math.min(fixedPercent, 100);
+    flexiblePercent = Math.min(flexiblePercent, 100);
+
+    if (fixedPercentInput) {
+        fixedPercentInput.value = fixedPercent.toFixed(1);
+        updateMetricStatus(fixedPercentInput);
+    }
+    if (flexiblePercentInput) {
+        flexiblePercentInput.value = flexiblePercent.toFixed(1);
+        updateMetricStatus(flexiblePercentInput);
+    }
+
+    updateSummary();
+    updateOverallRating();
+    triggerAutosave();
+}
+function updateCalculatedFields() {
+    updateAverageCheck();
+    updateSummary();
+    updateOverallRating();
+
+    updateSpaceOccupancyPercentages(); // добавлено для пересчёта процентов занятости
+}
+
     ];
     
     // Create summary items
@@ -398,6 +441,10 @@ function collectFormData() {
             visitors: document.getElementById('visitors').value,
             newClients: document.getElementById('new-clients').value,
             returningClients: document.getElementById('returning-clients').value,
+
+            fixedSpacesOccupied: document.getElementById('fixed-spaces-occupied') ? document.getElementById('fixed-spaces-occupied').value : '',
+            flexibleSpacesOccupied: document.getElementById('flexible-spaces-occupied') ? document.getElementById('flexible-spaces-occupied').value : '',
+
             fixedSpaces: document.getElementById('fixed-spaces').value,
             flexibleSpaces: document.getElementById('flexible-spaces').value,
             meetingRooms: document.getElementById('meeting-rooms').value,
@@ -860,6 +907,15 @@ function populateForm(data) {
     fixedSpaces: document.getElementById('fixed-spaces').value,
     flexibleSpaces: document.getElementById('flexible-spaces').value,
     meetingRooms: document.getElementById('meeting-rooms').value,
+
+        if (data.metrics) {
+        if (data.metrics.fixedSpacesOccupied !== undefined) {
+            const el = document.getElementById('fixed-spaces-occupied');
+            if (el) el.value = data.metrics.fixedSpacesOccupied;
+        }
+        if (data.metrics.flexibleSpacesOccupied !== undefined) {
+            const el = document.getElementById('flexible-spaces-occupied');
+            if (el) el.value = data.metrics.flexibleSpacesOccupied;
 },
     
     // Financial
