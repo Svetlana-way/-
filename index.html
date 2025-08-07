@@ -50,6 +50,8 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="fixed-spaces">Загрузка фиксированных мест (%)</label>
+                                <label for="fixed-spaces-occupied">Занято фиксированных мест (из 15):</label>
+<input type="number" id="fixed-spaces-occupied" min="0" max="15" step="1" />
                                 <input type="number" id="fixed-spaces" class="form-control metric-input" min="0" max="100" data-target="80">
                                 <small class="field-hint">Цель: >80%</small>
                                 <div class="status-indicator" id="fixed-spaces-status"></div>
@@ -62,6 +64,8 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="meeting-rooms">Загрузка переговорных (%)</label>
+                                <label for="flexible-spaces-occupied">Занято гибких мест (из 74):</label>
+<input type="number" id="flexible-spaces-occupied" min="0" max="74" step="1" />
                                 <input type="number" id="meeting-rooms" class="form-control metric-input" min="0" max="100" data-target="60">
                                 <small class="field-hint">Цель: >60%</small>
                                 <div class="status-indicator" id="meeting-rooms-status"></div>
@@ -393,5 +397,5 @@
     </div>
 
     <script src="app.js"></script>
-</body>
+    </body>
 </html>
