@@ -1,15 +1,10 @@
-const LAST_REPORT_DATE_KEY = 'last_report_date';
-const REPORTS_BY_DATE_KEY = 'daily_reports_by_date';
-
-const TOTAL_SPACES = 89;
-const FIXED_SPACES_TOTAL = 15;
-const FLEXIBLE_SPACES_TOTAL = TOTAL_SPACES - FIXED_SPACES_TOTAL; // 74
-
 // Daily Coworking Report Application
+
 // Global variables
 let formData = {};
 let autosaveTimeout = null;
 const AUTOSAVE_DELAY = 2000; // 2 seconds
+
 // Target values from JSON
 const TARGET_VALUES = {
     visitors: 50,
@@ -26,21 +21,19 @@ const TARGET_VALUES = {
 
 // Initialize application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    const todayStr = getTodayString();
-    const lastDate = localStorage.getItem(LAST_REPORT_DATE_KEY);
-
-    if (lastDate && lastDate !== todayStr) {
-        saveReportAsFinal(lastDate);  // сохранение вчерашнего отчета
-        sendReportToMail(lastDate);   // отправка вчерашнего отчета по email
-        clearForm(true);              // тихая очистка формы для нового дня
-    }
-
-    localStorage.setItem(LAST_REPORT_DATE_KEY, todayStr);
-
+    // Set today's date as default
     initializeDate();
+    
+    // Attach event listeners
     attachEventListeners();
-    loadOrResetFormByDate(todayStr);
+    
+    // Try to load saved form data
+    loadFormData();
+    
+    // Initialize calculation dependencies
     updateCalculatedFields();
+    
+    // Show toast message for initial guidance
     showToast('Заполните данные отчета и нажмите "Сформировать отчет"', 'success');
 });
 
@@ -56,29 +49,11 @@ function initializeDate() {
 // Attach event listeners to form elements
 function attachEventListeners() {
     // Metric inputs for status indicators
-    // Добавьте в тело attachEventListeners после существующих слушателей:
-
-const fixedOccupiedInput = document.getElementById('fixed-spaces-occupied');
-const flexibleOccupiedInput = document.getElementById('flexible-spaces-occupied');
-
-if (fixedOccupiedInput) {
-  fixedOccupiedInput.addEventListener('input', updateSpaceOccupancyPercentages);
-}
-if (flexibleOccupiedInput) {
-  flexibleOccupiedInput.addEventListener('input', updateSpaceOccupancyPercentages);
-}
-    const fixedOccupiedInput = document.getElementById('fixed-spaces-occupied');
-    const flexibleOccupiedInput = document.getElementById('flexible-spaces-occupied');
-    if (fixedOccupiedInput) {
-        fixedOccupiedInput.addEventListener('input', updateSpaceOccupancyPercentages);
-    }
-    if (flexibleOccupiedInput) {
-        flexibleOccupiedInput.addEventListener('input', updateSpaceOccupancyPercentages);
-    }
     document.querySelectorAll('.metric-input').forEach(input => {
         input.addEventListener('input', function() {
             updateMetricStatus(this);
             triggerAutosave();
+        });
     });
     
     // Inputs that trigger calculation updates
@@ -276,42 +251,6 @@ function updateSummary() {
             actual: parseFloat(document.getElementById('conversion-rate').value) || 0,
             id: 'conversion-rate'
         }
-        function updateSpaceOccupancyPercentages() {
-    const fixedOccupiedInput = document.getElementById('fixed-spaces-occupied');
-    const flexibleOccupiedInput = document.getElementById('flexible-spaces-occupied');
-    const fixedPercentInput = document.getElementById('fixed-spaces');
-    const flexiblePercentInput = document.getElementById('flexible-spaces');
-
-    const fixedOccupied = fixedOccupiedInput ? parseInt(fixedOccupiedInput.value) || 0 : 0;
-    const flexibleOccupied = flexibleOccupiedInput ? parseInt(flexibleOccupiedInput.value) || 0 : 0;
-
-    let fixedPercent = FIXED_SPACES_TOTAL ? (fixedOccupied / FIXED_SPACES_TOTAL) * 100 : 0;
-    let flexiblePercent = FLEXIBLE_SPACES_TOTAL ? (flexibleOccupied / FLEXIBLE_SPACES_TOTAL) * 100 : 0;
-
-    fixedPercent = Math.min(fixedPercent, 100);
-    flexiblePercent = Math.min(flexiblePercent, 100);
-
-    if (fixedPercentInput) {
-        fixedPercentInput.value = fixedPercent.toFixed(1);
-        updateMetricStatus(fixedPercentInput);
-    }
-    if (flexiblePercentInput) {
-        flexiblePercentInput.value = flexiblePercent.toFixed(1);
-        updateMetricStatus(flexiblePercentInput);
-    }
-
-    updateSummary();
-    updateOverallRating();
-    triggerAutosave();
-}
-function updateCalculatedFields() {
-    updateAverageCheck();
-    updateSummary();
-    updateOverallRating();
-
-    updateSpaceOccupancyPercentages(); // добавлено для пересчёта процентов занятости
-}
-
     ];
     
     // Create summary items
@@ -441,10 +380,6 @@ function collectFormData() {
             visitors: document.getElementById('visitors').value,
             newClients: document.getElementById('new-clients').value,
             returningClients: document.getElementById('returning-clients').value,
-
-            fixedSpacesOccupied: document.getElementById('fixed-spaces-occupied') ? document.getElementById('fixed-spaces-occupied').value : '',
-            flexibleSpacesOccupied: document.getElementById('flexible-spaces-occupied') ? document.getElementById('flexible-spaces-occupied').value : '',
-
             fixedSpaces: document.getElementById('fixed-spaces').value,
             flexibleSpaces: document.getElementById('flexible-spaces').value,
             meetingRooms: document.getElementById('meeting-rooms').value,
@@ -510,40 +445,6 @@ function collectFormData() {
             additionalComments: document.getElementById('additional-comments').value,
         },
     };
-function updateSpaceOccupancyPercentages() {
-  const fixedOccupiedInput = document.getElementById('fixed-spaces-occupied');
-  const flexibleOccupiedInput = document.getElementById('flexible-spaces-occupied');
-  const fixedPercentInput = document.getElementById('fixed-spaces');
-  const flexiblePercentInput = document.getElementById('flexible-spaces');
-
-  const fixedOccupied = fixedOccupiedInput ? parseInt(fixedOccupiedInput.value) || 0 : 0;
-  const flexibleOccupied = flexibleOccupiedInput ? parseInt(flexibleOccupiedInput.value) || 0 : 0;
-
-  let fixedPercent = FIXED_SPACES_TOTAL ? (fixedOccupied / FIXED_SPACES_TOTAL) * 100 : 0;
-  let flexiblePercent = FLEXIBLE_SPACES_TOTAL ? (flexibleOccupied / FLEXIBLE_SPACES_TOTAL) * 100 : 0;
-
-  fixedPercent = Math.min(fixedPercent, 100);
-  flexiblePercent = Math.min(flexiblePercent, 100);
-
-  if (fixedPercentInput) {
-    fixedPercentInput.value = fixedPercent.toFixed(1);
-    updateMetricStatus(fixedPercentInput);
-  }
-  if (flexiblePercentInput) {
-    flexiblePercentInput.value = flexiblePercent.toFixed(1);
-    updateMetricStatus(flexiblePercentInput);
-  }
-
-  updateSummary();
-  updateOverallRating();
-  triggerAutosave();
-}
-    function updateCalculatedFields() {
-    updateAverageCheck();
-    updateSummary();
-    updateOverallRating();
-    updateSpaceOccupancyPercentages();  
-}
     
     return formData;
 }
@@ -896,27 +797,15 @@ function populateForm(data) {
     if (data.manager) document.getElementById('manager-name').value = data.manager;
     if (data.coworkingName) document.getElementById('coworking-name').value = data.coworkingName;
     
-    // metrics: {
-    visitors: document.getElementById('visitors').value,
-    newClients: document.getElementById('new-clients').value,
-    returningClients: document.getElementById('returning-clients').value,
-
-    fixedSpacesOccupied: document.getElementById('fixed-spaces-occupied') ? document.getElementById('fixed-spaces-occupied').value : '',
-    flexibleSpacesOccupied: document.getElementById('flexible-spaces-occupied') ? document.getElementById('flexible-spaces-occupied').value : '',
-
-    fixedSpaces: document.getElementById('fixed-spaces').value,
-    flexibleSpaces: document.getElementById('flexible-spaces').value,
-    meetingRooms: document.getElementById('meeting-rooms').value,
-
-        if (data.metrics) {
-        if (data.metrics.fixedSpacesOccupied !== undefined) {
-            const el = document.getElementById('fixed-spaces-occupied');
-            if (el) el.value = data.metrics.fixedSpacesOccupied;
-        }
-        if (data.metrics.flexibleSpacesOccupied !== undefined) {
-            const el = document.getElementById('flexible-spaces-occupied');
-            if (el) el.value = data.metrics.flexibleSpacesOccupied;
-},
+    // Metrics
+    if (data.metrics) {
+        if (data.metrics.visitors) document.getElementById('visitors').value = data.metrics.visitors;
+        if (data.metrics.newClients) document.getElementById('new-clients').value = data.metrics.newClients;
+        if (data.metrics.returningClients) document.getElementById('returning-clients').value = data.metrics.returningClients;
+        if (data.metrics.fixedSpaces) document.getElementById('fixed-spaces').value = data.metrics.fixedSpaces;
+        if (data.metrics.flexibleSpaces) document.getElementById('flexible-spaces').value = data.metrics.flexibleSpaces;
+        if (data.metrics.meetingRooms) document.getElementById('meeting-rooms').value = data.metrics.meetingRooms;
+    }
     
     // Financial
     if (data.financial) {
@@ -1038,104 +927,4 @@ function showToast(message, type = 'success') {
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
-}
-function getTodayString() {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-}
-
-// Сохраняет текущий черновик как финальный отчёт за указанную дату
-function saveReportAsFinal(dateStr) {
-    const draft = localStorage.getItem('daily_report_form_data');
-    if (!draft) return;
-    let allReports = {};
-    try {
-        allReports = JSON.parse(localStorage.getItem(REPORTS_BY_DATE_KEY) || '{}');
-    } catch {
-        allReports = {};
-    }
-    allReports[dateStr] = JSON.parse(draft);
-    localStorage.setItem(REPORTS_BY_DATE_KEY, JSON.stringify(allReports));
-}
-
-// Загрузка черновика или финального отчета по дате, иначе очистка формы
-function loadOrResetFormByDate(dateStr) {
-    let allReports = {};
-    try {
-        allReports = JSON.parse(localStorage.getItem(REPORTS_BY_DATE_KEY) || '{}');
-    } catch {
-        allReports = {};
-    }
-    if (localStorage.getItem('daily_report_form_data')) {
-        loadFormData();
-    } else if (allReports[dateStr]) {
-        populateForm(allReports[dateStr]);
-    } else {
-        clearForm(true);
-    }
-}
-
-// Отправка отчёта на серверный API для отправки по email
-function sendReportToMail(dateStr) {
-    let allReports = {};
-    try {
-        allReports = JSON.parse(localStorage.getItem(REPORTS_BY_DATE_KEY) || '{}');
-    } catch {
-        allReports = {};
-    }
-    if (!allReports[dateStr]) return;
-
-    const formData = allReports[dateStr];
-    const report = formatReportFromData(formData);
-
-    fetch('/api/send-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            to: 'ssd-samoilova@mail.ru',
-            subject: `Отчет коворкинга за ${formatRuDate(dateStr)}`,
-            body: report,
-        }),
-    })
-    .then(res => res.json())
-    .then(data => {
-        console.log('Отчет отправлен:', data.status);
-        showToast('Вчерашний отчет отправлен на почту', 'success');
-    })
-    .catch(err => {
-        console.error('Ошибка отправки:', err);
-        showToast('Ошибка отправки отчета на почту', 'error');
-    });
-}
-
-// Форматирует данные отчёта для отправки в текстовом виде (заполните по вашей структуре)
-function formatReportFromData(data) {
-    const displayDate = data.date
-        ? new Date(data.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        : '';
-
-    // Пример формирования: подстройте под ваши реальные поля и формат вывода
-    return `Ежедневный отчет
-Дата: ${displayDate}
-Управляющий: ${data.manager || ''}
-Количество посетителей: ${data.metrics?.visitors || ''}
-Выручка за день: ${data.financial?.dailyRevenue || ''}
-... (Добавьте остальные поля отчёта по необходимости)
-`;
-}
-
-function formatRuDate(dateStr) {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-// Обновленная очистка формы, принимает параметр silent - тихий режим без подтверждения
-function clearForm(silent = false) {
-    if (!silent && !confirm('Вы уверены, что хотите очистить форму? Все введенные данные будут удалены.')) {
-        return;
-    }
-    const form = document.querySelector('form');
-    if (form) form.reset();
-    localStorage.removeItem('daily_report_form_data');
-    // обновите прочие элементы интерфейса при необходимости
 }
